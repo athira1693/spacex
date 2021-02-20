@@ -4,6 +4,8 @@ import {
   upcomingLaunchesAPI,
 } from "../../config/api";
 import * as types from "./types";
+import axios from "axios";
+
 function fetchLaunchesRequest() {
   return {
     type: types.FETCH_LAUNCHES_REQUEST,
