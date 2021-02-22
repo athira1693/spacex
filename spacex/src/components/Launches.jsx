@@ -16,7 +16,10 @@ import Pagination from "@material-ui/lab/Pagination";
 import { fetchAllLaunches } from "../redux/actions/launchesActions";
 
 const useStyles = makeStyles({
-  root: {},
+  root: {
+    // margin: "2vh 10vw",
+  },
+  container: {},
   pagination: {
     float: "right",
     marginTop: "2vh",
@@ -120,19 +123,23 @@ export default function Launches() {
         );
       });
       setLaunchRows([...lauchList]);
-      debugger;
     }
   }, [launches]);
 
   return (
-    <Grid container style={{ margin: "2vh 10vw" }}>
+    <Grid
+      container
+      className={classes.root}
+      direction="column"
+      alignItems="center"
+    >
       <Grid item container justify="space-between"></Grid>
-      <Grid item>
-        <Paper className={classes.root}>
+      <Grid item style={{ width: "80%" }}>
+        <Paper>
           <TableContainer className={classes.container}>
             <Table stickyHeader aria-label="sticky table">
               <TableHead>
-                <TableRow>
+                <TableRow key="headRow">
                   {headings.map((column) => (
                     <TableCell
                       key={column.id}
@@ -160,9 +167,7 @@ export default function Launches() {
                             const value = row[column.id];
                             return (
                               <TableCell key={column.id} align={column.align}>
-                                {column.format && typeof value === "number"
-                                  ? column.format(value)
-                                  : value}
+                                {value}
                               </TableCell>
                             );
                           })}
@@ -179,7 +184,7 @@ export default function Launches() {
             shape="rounded"
             onChange={handleChangePage}
             count={Math.ceil(launchRows.length / rowsPerPage)}
-            siblingCount={-1}
+            // siblingCount={-1}
           />
         </Paper>
       </Grid>
