@@ -30,10 +30,7 @@ export function fetchAllLaunches() {
   return (dispatch) => {
     dispatch(fetchLaunchesRequest());
     return axios
-      .get(allLaunchesAPI, {
-        params: {},
-        headers: {},
-      })
+      .get(allLaunchesAPI)
       .then((response) => {
         dispatch(fetchLaunchesSuccess(response.data));
       })
@@ -43,13 +40,12 @@ export function fetchAllLaunches() {
   };
 }
 
-export function fetchPastLaunches() {
+export function fetchPastLaunches(status) {
   return (dispatch) => {
     dispatch(fetchLaunchesRequest());
     return axios
       .get(pastLaunchesAPI, {
-        params: {},
-        headers: {},
+        params: {launch_success:status},
       })
       .then((response) => {
         dispatch(fetchLaunchesSuccess(response.data));

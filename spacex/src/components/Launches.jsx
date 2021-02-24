@@ -1,4 +1,4 @@
-import { FormControl, Grid, Input, InputAdornment } from "@material-ui/core";
+import { FormControl, Grid, Input, InputAdornment, TextField } from "@material-ui/core";
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
@@ -10,12 +10,13 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Pagination from "@material-ui/lab/Pagination";
-import { fetchAllLaunches } from "../redux/actions/launchesActions";
+import { fetchAllLaunches, fetchPastLaunches, fetchUpcomingLaunches } from "../redux/actions/launchesActions";
 import Status from "./Status";
 import { DateRangePicker, DateRange } from "materialui-daterange-picker";
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import filterIcon from '../filterIcon.svg'
 
 const useStyles = makeStyles({
   root: {
@@ -26,40 +27,42 @@ const useStyles = makeStyles({
     float: "right",
     marginTop: "2vh",
   },
+  statusFilter:{
+    width:"15%"
+  }
 });
 
 const headings = [
-  { id: "number", label: "No:", minWidth: 100 },
+  { id: "number", label: "No:"},
   {
     id: "launchedDate",
     label: "Launched\u00a0(UTC)",
-    minWidth: 170,
+    minWidth: "15%"
   },
   {
     id: "location",
     label: "Location",
-    minWidth: 170,
+    minWidth: "15%"
   },
   {
     id: "mission",
     label: "Mission",
-    minWidth: 170,
+    minWidth: "20%"
   },
   {
     id: "orbit",
-    label: "Orbit",
-    minWidth: 170,
+    label: "Orbit"
   },
   {
     id: "launchStatus",
     label: "Launch Status",
-    minWidth: 170,
-    align: "center",
+    minWidth: "15%",
+    align: "center"
   },
   {
     id: "rocket",
     label: "Rocket",
-    minWidth: 170,
+    minWidth: "15%"
   },
 ];
 
@@ -97,6 +100,11 @@ export default function Launches() {
   const [open, setOpen] = useState(false);
   const [dateRange, setDateRange] = useState({});
 
+  const statusProps = {
+    options:[ {id:"All Launches",value:"all"}, {id:"Upcoming Launches",value:"upcoming"}, {id:"Successful Launches",value:"success"},{id:"Failed Launches",value:"failed"}],
+    getOptionLabel: (option) => option.id,
+  };
+
   const toggle = () => setOpen(!open);
 
   const handleChangePage = (event, newPage) => {
@@ -107,6 +115,27 @@ export default function Launches() {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+  
+  const handleStatusChange= (event,item)=>{
+    debugger
+    switch (item.value) {
+      case "all":
+        dispatch(fetchAllLaunches());
+        break;
+      case "failed":
+        dispatch(fetchPastLaunches(false));
+        break;
+      case "success":
+        dispatch(fetchPastLaunches(true));
+        break;
+      case "upcoming":
+        dispatch(fetchUpcomingLaunches());
+        break;
+    
+      default:
+        break;
+    }
+  }
 
   useEffect(() => {
     dispatch(fetchAllLaunches());
@@ -139,8 +168,9 @@ export default function Launches() {
       direction="column"
       alignItems="center"
     >
-      <Grid item container justify="space-between">
-        <FormControl>
+      <Grid item container justify="space-between" style={{ width: "80%" }}>
+       <Grid item>
+         <FormControl>
           <Input
             id="dateInput"
             startAdornment={<InputAdornment position="start"></InputAdornment>}
@@ -152,6 +182,13 @@ export default function Launches() {
             />
           </Input>
         </FormControl>
+        </Grid> 
+        <Grid item className={classes.statusFilter}>
+        <Autocomplete disableClearable onChange={handleStatusChange}
+        {...statusProps}
+        renderInput={(params) => <TextField {...params} margin="normal" />}
+      />
+        </Grid>
       </Grid>
       <Grid item style={{ width: "80%" }}>
         <Paper>
@@ -208,7 +245,7 @@ export default function Launches() {
             variant="outlined"
             shape="rounded"
             onChange={handleChangePage}
-            count={Math.ceil(launchRows.length / rowsPerPage)}
+            count={Math.floor(launchRows.length / rowsPerPage)}
             // siblingCount={-1}
           />
         </Paper>
