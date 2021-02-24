@@ -1,4 +1,4 @@
-import { Grid } from "@material-ui/core";
+import { FormControl, Grid, Input, InputAdornment } from "@material-ui/core";
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
@@ -14,6 +14,8 @@ import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Pagination from "@material-ui/lab/Pagination";
 import { fetchAllLaunches } from "../redux/actions/launchesActions";
+import Status from "./Status";
+import { DateRangePicker, DateRange } from "materialui-daterange-picker";
 
 const useStyles = makeStyles({
   root: {
@@ -49,7 +51,7 @@ const headings = [
     minWidth: 170,
   },
   {
-    id: "lauchStatus",
+    id: "launchStatus",
     label: "Launch Status",
     minWidth: 170,
     align: "center",
@@ -67,7 +69,7 @@ function createLauchList(
   location,
   mission,
   orbit,
-  lauchStatus,
+  launchStatus,
   rocket
 ) {
   return {
@@ -76,7 +78,7 @@ function createLauchList(
     location,
     mission,
     orbit,
-    lauchStatus,
+    launchStatus,
     rocket,
   };
 }
@@ -92,6 +94,10 @@ export default function Launches() {
   const dispatch = useDispatch();
   const launches = useSelector((state) => state.launches);
   const [launchRows, setLaunchRows] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [dateRange, setDateRange] = useState({});
+
+  const toggle = () => setOpen(!open);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -133,7 +139,20 @@ export default function Launches() {
       direction="column"
       alignItems="center"
     >
-      <Grid item container justify="space-between"></Grid>
+      <Grid item container justify="space-between">
+        <FormControl>
+          <Input
+            id="dateInput"
+            startAdornment={<InputAdornment position="start"></InputAdornment>}
+          >
+            <DateRangePicker
+              open={open}
+              toggle={toggle}
+              onChange={(range) => setDateRange(range)}
+            />
+          </Input>
+        </FormControl>
+      </Grid>
       <Grid item style={{ width: "80%" }}>
         <Paper>
           <TableContainer className={classes.container}>
@@ -152,6 +171,7 @@ export default function Launches() {
                 </TableRow>
               </TableHead>
               <TableBody>
+                {launchRows.loading && <LoadingIndicator />}
                 {launchRows.length > 0 &&
                   launchRows
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
@@ -167,7 +187,12 @@ export default function Launches() {
                             const value = row[column.id];
                             return (
                               <TableCell key={column.id} align={column.align}>
-                                {value}
+                                {console.log(column.id)}
+                                {column.id === "launchStatus" && value ? (
+                                  <Status status={value} />
+                                ) : (
+                                  value
+                                )}
                               </TableCell>
                             );
                           })}
