@@ -90,24 +90,28 @@ function findStatus(isLaunchSuccess, isUpcoming) {
   return isUpcoming ? "Upcoming" : isLaunchSuccess ? "Success" : "Failed";
 }
 
+const launchOptions = [{id:"All Launches",value:"all"}, {id:"Upcoming Launches",value:"upcoming"}, {id:"Successful Launches",value:"success"},{id:"Failed Launches",value:"failed"}]
+
 export default function Launches() {
   const classes = useStyles();
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(12);
   const dispatch = useDispatch();
   const launches = useSelector((state) => state.launches);
   const [launchRows, setLaunchRows] = useState([]);
   const [open, setOpen] = useState(false);
   const [dateRange, setDateRange] = useState({});
+  const [launchStatus, setLaunchStatus] = useState(launchOptions[0])
 
   const statusProps = {
-    options:[ {id:"All Launches",value:"all"}, {id:"Upcoming Launches",value:"upcoming"}, {id:"Successful Launches",value:"success"},{id:"Failed Launches",value:"failed"}],
+    options:launchOptions,
     getOptionLabel: (option) => option.id,
   };
 
   const toggle = () => setOpen(!open);
 
   const handleChangePage = (event, newPage) => {
+    debugger
     setPage(newPage);
   };
 
@@ -118,6 +122,7 @@ export default function Launches() {
   
   const handleStatusChange= (event,item)=>{
     debugger
+    setLaunchStatus(item)
     switch (item.value) {
       case "all":
         dispatch(fetchAllLaunches());
@@ -144,6 +149,7 @@ export default function Launches() {
   useEffect(() => {
     if (launches.launches) {
       let lauchList = [];
+      console.log(launches.launches.length)
       launches.launches.map((launch) => {
         lauchList.push(
           createLauchList(
@@ -157,6 +163,7 @@ export default function Launches() {
           )
         );
       });
+      debugger
       setLaunchRows([...lauchList]);
     }
   }, [launches]);
@@ -186,6 +193,7 @@ export default function Launches() {
         <Grid item className={classes.statusFilter}>
         <Autocomplete disableClearable onChange={handleStatusChange}
         {...statusProps}
+        value={launchStatus}
         renderInput={(params) => <TextField {...params} margin="normal" />}
       />
         </Grid>
@@ -211,7 +219,7 @@ export default function Launches() {
                 {launchRows.loading && <LoadingIndicator />}
                 {launchRows.length > 0 &&
                   launchRows
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .slice((page==1?0:page) * rowsPerPage, (page==1?0:page) * rowsPerPage + rowsPerPage)
                     .map((row) => {
                       return (
                         <TableRow
@@ -224,7 +232,6 @@ export default function Launches() {
                             const value = row[column.id];
                             return (
                               <TableCell key={column.id} align={column.align}>
-                                {console.log(column.id)}
                                 {column.id === "launchStatus" && value ? (
                                   <Status status={value} />
                                 ) : (
@@ -244,8 +251,9 @@ export default function Launches() {
             component="div"
             variant="outlined"
             shape="rounded"
+            page={page}
             onChange={handleChangePage}
-            count={Math.floor(launchRows.length / rowsPerPage)}
+            count={Math.ceil(launchRows.length / rowsPerPage)}
             // siblingCount={-1}
           />
         </Paper>
