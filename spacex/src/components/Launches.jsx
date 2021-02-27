@@ -1,4 +1,14 @@
-import { FormControl, Grid, Input, InputAdornment, TextField } from "@material-ui/core";
+import {
+  Box,
+  Button,
+  FormControl,
+  Grid,
+  Input,
+  InputAdornment,
+  MenuItem,
+  Select,
+  TextField,
+} from "@material-ui/core";
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
@@ -12,11 +22,15 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Pagination from "@material-ui/lab/Pagination";
-import { fetchAllLaunches, fetchPastLaunches, fetchUpcomingLaunches } from "../redux/actions/launchesActions";
+import {
+  fetchAllLaunches,
+  fetchPastLaunches,
+  fetchUpcomingLaunches,
+} from "../redux/actions/launchesActions";
 import Status from "./Status";
-import { DateRangePicker, DateRange } from "materialui-daterange-picker";
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import filterIcon from '../filterIcon.svg'
+import Autocomplete from "@material-ui/lab/Autocomplete";
+import filterIcon from "../filterIcon.svg";
+import DateRange from "./DateRangeModal";
 
 const useStyles = makeStyles({
   root: {
@@ -27,42 +41,54 @@ const useStyles = makeStyles({
     float: "right",
     marginTop: "2vh",
   },
-  statusFilter:{
-    width:"15%"
-  }
+  statusFilter: {
+    "&.MuiInput-underline": {
+      "&&&:before": {
+        borderBottom: "none",
+      },
+      "&&:after": {
+        borderBottom: "none",
+      },
+    },
+  },
+  dateRangeClass: {
+    "&MuiPaper-elevation": {
+      boxShadow: "none",
+    },
+  },
 });
 
 const headings = [
-  { id: "number", label: "No:"},
+  { id: "number", label: "No:" },
   {
     id: "launchedDate",
     label: "Launched\u00a0(UTC)",
-    minWidth: "15%"
+    minWidth: "15%",
   },
   {
     id: "location",
     label: "Location",
-    minWidth: "15%"
+    minWidth: "15%",
   },
   {
     id: "mission",
     label: "Mission",
-    minWidth: "20%"
+    minWidth: "20%",
   },
   {
     id: "orbit",
-    label: "Orbit"
+    label: "Orbit",
   },
   {
     id: "launchStatus",
     label: "Launch Status",
     minWidth: "15%",
-    align: "center"
+    align: "center",
   },
   {
     id: "rocket",
     label: "Rocket",
-    minWidth: "15%"
+    minWidth: "15%",
   },
 ];
 
@@ -90,7 +116,12 @@ function findStatus(isLaunchSuccess, isUpcoming) {
   return isUpcoming ? "Upcoming" : isLaunchSuccess ? "Success" : "Failed";
 }
 
-const launchOptions = [{id:"All Launches",value:"all"}, {id:"Upcoming Launches",value:"upcoming"}, {id:"Successful Launches",value:"success"},{id:"Failed Launches",value:"failed"}]
+const launchOptions = [
+  { id: "All Launches", value: "all" },
+  { id: "Upcoming Launches", value: "upcoming" },
+  { id: "Successful Launches", value: "success" },
+  { id: "Failed Launches", value: "failed" },
+];
 
 export default function Launches() {
   const classes = useStyles();
@@ -101,17 +132,15 @@ export default function Launches() {
   const [launchRows, setLaunchRows] = useState([]);
   const [open, setOpen] = useState(false);
   const [dateRange, setDateRange] = useState({});
-  const [launchStatus, setLaunchStatus] = useState(launchOptions[0])
+  const [launchStatus, setLaunchStatus] = useState(launchOptions[0]);
+  const [openDateRange, setOpenDateRange] = useState(false);
 
   const statusProps = {
-    options:launchOptions,
+    options: launchOptions,
     getOptionLabel: (option) => option.id,
   };
 
-  const toggle = () => setOpen(!open);
-
   const handleChangePage = (event, newPage) => {
-    debugger
     setPage(newPage);
   };
 
@@ -119,10 +148,18 @@ export default function Launches() {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
-  
-  const handleStatusChange= (event,item)=>{
-    debugger
-    setLaunchStatus(item)
+
+  const handleOpenDateRange = () => {
+    setOpenDateRange(true);
+  };
+
+  const handleCloseDateRange = () => {
+    setOpenDateRange(false);
+  };
+
+  const handleStatusChange = (event, item) => {
+    setLaunchStatus(item);
+    setPage(1);
     switch (item.value) {
       case "all":
         dispatch(fetchAllLaunches());
@@ -136,11 +173,11 @@ export default function Launches() {
       case "upcoming":
         dispatch(fetchUpcomingLaunches());
         break;
-    
+
       default:
         break;
     }
-  }
+  };
 
   useEffect(() => {
     dispatch(fetchAllLaunches());
@@ -149,7 +186,7 @@ export default function Launches() {
   useEffect(() => {
     if (launches.launches) {
       let lauchList = [];
-      console.log(launches.launches.length)
+      console.log(launches.launches.length);
       launches.launches.map((launch) => {
         lauchList.push(
           createLauchList(
@@ -163,101 +200,124 @@ export default function Launches() {
           )
         );
       });
-      debugger
       setLaunchRows([...lauchList]);
     }
   }, [launches]);
 
   return (
-    <Grid
-      container
-      className={classes.root}
-      direction="column"
-      alignItems="center"
-    >
-      <Grid item container justify="space-between" style={{ width: "80%" }}>
-       <Grid item>
-         <FormControl>
-          <Input
-            id="dateInput"
-            startAdornment={<InputAdornment position="start"></InputAdornment>}
-          >
-            <DateRangePicker
-              open={open}
-              toggle={toggle}
-              onChange={(range) => setDateRange(range)}
+    <>
+      <Grid
+        container
+        className={classes.root}
+        direction="column"
+        alignItems="center"
+      >
+        <Grid item container justify="space-between" style={{ width: "80%" }}>
+          <Grid item>
+            <Select
+              open={openDateRange}
+              onOpen={() => handleOpenDateRange()}
+            ></Select>
+            {/* <Button onClick={handleOpenDateRange}>saa</Button> */}
+          </Grid>
+          <Grid item style={{ width: "15%" }}>
+            <Autocomplete
+              disableClearable
+              onChange={handleStatusChange}
+              {...statusProps}
+              value={launchStatus}
+              renderInput={(params) => (
+                <TextField
+                  className={classes.statusFilter}
+                  {...params}
+                  margin="normal"
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <InputAdornment position="end">
+                        <img src={filterIcon}></img>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              )}
             />
-          </Input>
-        </FormControl>
-        </Grid> 
-        <Grid item className={classes.statusFilter}>
-        <Autocomplete disableClearable onChange={handleStatusChange}
-        {...statusProps}
-        value={launchStatus}
-        renderInput={(params) => <TextField {...params} margin="normal" />}
-      />
+          </Grid>
+        </Grid>
+        <Grid item style={{ width: "80%" }}>
+          <Paper>
+            <TableContainer className={classes.container}>
+              <Table stickyHeader aria-label="sticky table">
+                <TableHead>
+                  <TableRow key="headRow">
+                    {headings.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        align={column.align}
+                        style={{ minWidth: column.minWidth }}
+                      >
+                        {column.label}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {launches.loading && <LoadingIndicator />}
+                  {!launches.loading &&
+                    launchRows.length > 0 &&
+                    launchRows
+                      .slice(
+                        (page - 1) * rowsPerPage,
+                        (page - 1) * rowsPerPage + rowsPerPage
+                      )
+                      .map((row) => {
+                        return (
+                          <TableRow
+                            hover
+                            role="checkbox"
+                            tabIndex={-1}
+                            key={row.code}
+                          >
+                            {headings.map((column) => {
+                              const value = row[column.id];
+                              return (
+                                <TableCell key={column.id} align={column.align}>
+                                  {column.id === "launchStatus" && value ? (
+                                    <Status status={value} />
+                                  ) : (
+                                    value
+                                  )}
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        );
+                      })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Pagination
+              className={classes.pagination}
+              component="div"
+              variant="outlined"
+              shape="rounded"
+              page={page}
+              onChange={handleChangePage}
+              count={Math.ceil(launchRows.length / rowsPerPage)}
+              // siblingCount={-1}
+            />
+          </Paper>
         </Grid>
       </Grid>
-      <Grid item style={{ width: "80%" }}>
-        <Paper>
-          <TableContainer className={classes.container}>
-            <Table stickyHeader aria-label="sticky table">
-              <TableHead>
-                <TableRow key="headRow">
-                  {headings.map((column) => (
-                    <TableCell
-                      key={column.id}
-                      align={column.align}
-                      style={{ minWidth: column.minWidth }}
-                    >
-                      {column.label}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {launchRows.loading && <LoadingIndicator />}
-                {launchRows.length > 0 &&
-                  launchRows
-                    .slice((page==1?0:page) * rowsPerPage, (page==1?0:page) * rowsPerPage + rowsPerPage)
-                    .map((row) => {
-                      return (
-                        <TableRow
-                          hover
-                          role="checkbox"
-                          tabIndex={-1}
-                          key={row.code}
-                        >
-                          {headings.map((column) => {
-                            const value = row[column.id];
-                            return (
-                              <TableCell key={column.id} align={column.align}>
-                                {column.id === "launchStatus" && value ? (
-                                  <Status status={value} />
-                                ) : (
-                                  value
-                                )}
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      );
-                    })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Pagination
-            className={classes.pagination}
-            component="div"
-            variant="outlined"
-            shape="rounded"
-            page={page}
-            onChange={handleChangePage}
-            count={Math.ceil(launchRows.length / rowsPerPage)}
-            // siblingCount={-1}
-          />
-        </Paper>
-      </Grid>
-    </Grid>
+      {openDateRange && (
+        <DateRange
+          setDateRange={setDateRange}
+          openDateRange={openDateRange}
+          handleOpenDateRange={handleOpenDateRange}
+          handleCloseDateRange={handleCloseDateRange}
+          dateRangeClass={classes.dateRangeClass}
+        />
+      )}
+    </>
   );
 }
