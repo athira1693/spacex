@@ -1,24 +1,20 @@
-import React, { useState } from "react";
-import { withStyles } from "@material-ui/core/styles";
-import { DateRangePicker, DateRange } from "materialui-daterange-picker";
-import Dialog from "@material-ui/core/Dialog";
-import MuiDialogTitle from "@material-ui/core/DialogTitle";
-import IconButton from "@material-ui/core/IconButton";
-import CloseIcon from "@material-ui/icons/Close";
-import Typography from "@material-ui/core/Typography";
-import {
-  addDays,
-  startOfWeek,
-  endOfWeek,
-  addWeeks,
-  startOfMonth,
-  endOfMonth,
-  addMonths,
-} from "date-fns";
+import React from "react";
+import { makeStyles } from "@material-ui/core/styles";
+import { DateRangePicker } from "materialui-daterange-picker";
+import { addWeeks, endOfMonth, addMonths } from "date-fns";
+import moment from "moment";
+import { Backdrop } from "@material-ui/core";
+
+const useStyles = makeStyles((theme) => ({
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1,
+    color: "#fff",
+  },
+}));
 
 const date = new Date();
 
-const definedRanges = [
+export const definedRanges = [
   {
     label: "Past Week",
     startDate: addWeeks(date, -1),
@@ -51,81 +47,68 @@ const definedRanges = [
   },
 ];
 
-const styles = (theme) => ({
-  root: {
-    margin: 0,
-    padding: theme.spacing(2),
-  },
-  closeButton: {
-    position: "absolute",
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-});
-
-const DialogTitle = withStyles(styles)((props) => {
-  const { children, classes, onClose, ...other } = props;
-
-  return (
-    <MuiDialogTitle disableTypography {...other}>
-      <Typography variant="h6">{children}</Typography>
-      {onClose ? (
-        <IconButton
-          aria-label="close"
-          className={classes.closeButton}
-          onClick={onClose}
-        >
-          <CloseIcon />
-        </IconButton>
-      ) : null}
-    </MuiDialogTitle>
+export const getQueriedRange = (start, end) => {
+  let dateObj = definedRanges.find(
+    (range) =>
+      moment(range.startDate.toDateString()).isSame(start.toDateString()) &&
+      moment(range.endDate.toDateString()).isSame(end.toDateString())
   );
-});
+  return dateObj
+    ? dateObj
+    : {
+        label: `${start.toDateString()} - ${end.toDateString()}`,
+        startDate: start,
+        endDate: end,
+      };
+};
 
-export default function DateRangeModal({
+export const isDateBetween = (date, startDate, endDate) => {
+  let givenDate = new Date(date).toDateString();
+  return moment(givenDate).isBetween(
+    startDate.toDateString(),
+    endDate.toDateString()
+  );
+};
+
+const DateRangeModal = ({
   setDateRange,
   openDateRange,
-  handleOpenDateRange,
   handleCloseDateRange,
-  dateRangeClass,
-}) {
-  const [open, setOpen] = useState(true);
-  console.log("defaultRanges", definedRanges);
+  toggle,
+}) => {
+  const classes = useStyles();
+
+  const handleDateChange = (range) => {
+    if (!range.label) {
+      setDateRange({
+        ...range,
+        label: `${range.startDate.toDateString()} - ${range.endDate.toDateString()}`,
+      });
+    } else {
+      setDateRange(range);
+    }
+  };
 
   return (
-    // <Dialog width={"120px"} height={"120px"}>
-    //   <DateRangePicker
-    //     open={true}
-    //     toggle={() => {}}
-    //     onChange={(range) => setDateRange(range)}
-    //   />
-    // </Dialog>
-
-    <Dialog
-      open={open}
-      maxWidth={false}
-      onClose={() => {
-        setOpen(false);
-        handleCloseDateRange();
-        console.log(" here");
+    <Backdrop
+      className={classes.backdrop}
+      open={openDateRange}
+      id="dateRangeBackdrop"
+      onClick={(e) => {
+        if (e.target.id === "dateRangeBackdrop") {
+          handleCloseDateRange();
+        }
       }}
-      // onBackdropClick={() => {
-      //   setOpen(false);
-      //   handleCloseDateRange();
-      //   console.log("changed");
-      // }}
     >
-      <DialogTitle id="customized-dialog-title" onClose={() => setOpen(false)}>
-        " asd "{" "}
-      </DialogTitle>
       <DateRangePicker
         definedRanges={definedRanges}
-        className={dateRangeClass}
+        closeOnClickOutside
         open={openDateRange}
-        toggle={() => {}}
-        onChange={(range) => setDateRange(range)}
+        toggle={toggle}
+        onChange={handleDateChange}
       />
-    </Dialog>
+    </Backdrop>
   );
-}
+};
+
+export default React.memo(DateRangeModal);

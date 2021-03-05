@@ -1,15 +1,17 @@
-import { Grid } from "@material-ui/core";
+import { Box, Grid } from "@material-ui/core";
 import React from "react";
 import Loader from "react-loader-spinner";
 
 export default function LoadingIndicator() {
   return (
-    <Grid
-      style={{ height: "100%", width: "100%" }}
-      container
-      alignItems="center"
-      justify="center"
-    >
+    // <Grid
+    //   style={{ height: "100%", width: "100%" }}
+    //   container
+    //   alignItems="center"
+    //   justify="center"
+    // >
+    //   <Grid item>
+    <Box>
       <Loader
         visible={true}
         type="Circles"
@@ -17,6 +19,9 @@ export default function LoadingIndicator() {
         height={100}
         width={100}
       />
-    </Grid>
+    </Box>
+
+    //   </Grid>
+    // </Grid>
   );
 }

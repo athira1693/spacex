@@ -26,7 +26,7 @@ function fetchLaunchesFailure(error) {
   };
 }
 
-export function fetchAllLaunches() {
+export function fetchAllLaunches(dateRange) {
   return (dispatch) => {
     dispatch(fetchLaunchesRequest());
     return axios
@@ -45,7 +45,7 @@ export function fetchPastLaunches(status) {
     dispatch(fetchLaunchesRequest());
     return axios
       .get(pastLaunchesAPI, {
-        params: {launch_success:status},
+        params: { launch_success: status },
       })
       .then((response) => {
         dispatch(fetchLaunchesSuccess(response.data));

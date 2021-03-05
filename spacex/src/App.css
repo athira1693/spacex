@@ -16,6 +16,10 @@
 }
 
 
+.materialui-daterange-picker-makeStyles-dateRangePicker-2 .MuiGrid-wrap-xs-nowrap{
+flex-direction: row-reverse;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

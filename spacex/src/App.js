@@ -20,7 +20,7 @@ function App() {
         <Router>
           <Switch>
             <Route exact path={["/", "/spacex"]}>
-              <Redirect to="/spacex?start=&end=&type=" component={Launches} />
+              {/* <Redirect to="/spacex?start=&end=&type=" component={Launches} /> */}
               <Launches />
             </Route>
           </Switch>
