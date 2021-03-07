@@ -20,11 +20,7 @@
 flex-direction: row-reverse;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.singleLaunch .MuiDialog-paperWidthSm{
+min-width: 600px;
+padding: 2vh;
 }

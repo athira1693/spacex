@@ -45,14 +45,25 @@ export const definedRanges = [
     startDate: addMonths(date, -24),
     endDate: date,
   },
+  {
+    label: "All dates",
+    startDate: null,
+    endDate: null,
+  },
 ];
 
 export const getQueriedRange = (start, end) => {
-  let dateObj = definedRanges.find(
-    (range) =>
-      moment(range.startDate.toDateString()).isSame(start.toDateString()) &&
-      moment(range.endDate.toDateString()).isSame(end.toDateString())
-  );
+  let dateObj =
+    start && end
+      ? definedRanges.find((range) => {
+          if (range.startDate) {
+            moment(range.startDate.toDateString()).isSame(
+              start.toDateString()
+            ) &&
+              moment(range.endDate.toDateString()).isSame(end.toDateString());
+          }
+        })
+      : { label: `All dates`, startDate: null, endDate: null };
   return dateObj
     ? dateObj
     : {
@@ -71,6 +82,7 @@ export const isDateBetween = (date, startDate, endDate) => {
 };
 
 const DateRangeModal = ({
+  dateRange,
   setDateRange,
   openDateRange,
   handleCloseDateRange,
@@ -79,7 +91,9 @@ const DateRangeModal = ({
   const classes = useStyles();
 
   const handleDateChange = (range) => {
-    if (!range.label) {
+    if (!range.hasOwnProperty("startDate")) {
+      setDateRange({ label: "All dates", startDate: null, endDate: null });
+    } else if (!range.label) {
       setDateRange({
         ...range,
         label: `${range.startDate.toDateString()} - ${range.endDate.toDateString()}`,
@@ -101,6 +115,7 @@ const DateRangeModal = ({
       }}
     >
       <DateRangePicker
+        initialDateRange={dateRange}
         definedRanges={definedRanges}
         closeOnClickOutside
         open={openDateRange}
