@@ -132,15 +132,14 @@ export default function SingleLaunchDetails({
       <DialogContent>
         <Typography gutterBottom>
           {selectedRow.details}
-          <a
+         {selectedRow.details && <a
             href={selectedRow.links.wikipedia}
             target="_blank"
             rel="noreferrer noopener"
             style={{ textDecoration: "none" }}
           >
-            {" "}
             Wikipedia
-          </a>
+          </a>}
         </Typography>
         <TableContainer>
           <Table>
