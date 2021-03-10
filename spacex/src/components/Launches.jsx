@@ -31,13 +31,15 @@ import CalendarTodayOutlinedIcon from "@material-ui/icons/CalendarTodayOutlined"
 import { useHistory } from "react-router-dom";
 import querystring from "querystring";
 import NoData from "./NoData";
+import SingleLaunchDetails from "./SingleLaunchDetails";
 
 const useStyles = makeStyles((theme) => ({
   root: {
     // margin: "2vh 10vw",
   },
   container: {
-    minHeight: "80vh",
+    minHeight: "676px",
+    width: "952px",
   },
   pagination: {
     float: "right",
@@ -50,6 +52,15 @@ const useStyles = makeStyles((theme) => ({
       },
       "&&:after": {
         borderBottom: "none",
+      },
+    },
+    fontSize:'16px'
+  },
+  tableRow: {
+    "&.Mui-selected": {
+      backgroundColor: "#f5f5f5",
+      "&:hover": {
+        backgroundColor: "#f5f5f5",
       },
     },
   },
@@ -130,6 +141,7 @@ export default function Launches() {
   const [dateRange, setDateRange] = useState("");
   const [launchStatus, setLaunchStatus] = useState("");
   const [openDateRange, setOpenDateRange] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
   let history = useHistory();
   const { start, end, type } = querystring.parse(
     history.location.search.slice(1)
@@ -176,19 +188,12 @@ export default function Launches() {
   const filterLaunches = () => {
     if (launches.launches) {
       let lauchList = [];
-
-      launches.launches.map((launch) => {
-        if (
-          isDateBetween(
-            launch.launch_date_utc,
-            dateRange.startDate,
-            dateRange.endDate
-          )
-        ) {
+      if (dateRange.label == "All dates") {
+        launches.launches.map((launch) => {
           lauchList.push(
             createLauchList(
               launch.flight_number,
-              moment(launch.launch_date_utc).format("DD MMMM YYYY hh:mm"),
+              moment.utc(launch.launch_date_utc).format("DD MMMM YYYY HH:mm"),
               launch.launch_site.site_name,
               launch.mission_name,
               launch.rocket.second_stage.payloads[0].orbit,
@@ -196,13 +201,45 @@ export default function Launches() {
               launch.rocket.rocket_name
             )
           );
-        }
-      });
+        });
+      } else
+        launches.launches.map((launch) => {
+          if (
+            isDateBetween(
+              launch.launch_date_utc,
+              dateRange.startDate,
+              dateRange.endDate
+            )
+          ) {
+            lauchList.push(
+              createLauchList(
+                launch.flight_number,
+                moment(launch.launch_date_utc).format("DD MMMM YYYY hh:mm"),
+                launch.launch_site.site_name,
+                launch.mission_name,
+                launch.rocket.second_stage.payloads[0].orbit,
+                findStatus(launch.launch_success, launch.upcoming),
+                launch.rocket.rocket_name
+              )
+            );
+          }
+        });
       setLaunchRows([...lauchList]);
     }
   };
 
   const toggle = () => setOpenDateRange(!openDateRange);
+
+  const handleDetailsDialog = (flightNumber, status) => {
+    let row = launches.launches.find(
+      (launch) => launch.flight_number == flightNumber
+    );
+    setSelectedRow({ row, status });
+  };
+
+  const closeDetailsDialog = () => {
+    setSelectedRow(null);
+  };
 
   useEffect(() => {
     let status = type
@@ -213,7 +250,8 @@ export default function Launches() {
     let date =
       start && end
         ? getQueriedRange(new Date(start), new Date(end))
-        : definedRanges.find((range) => range.label === "Past 6 Months");
+        : definedRanges.find((range) => range.label === "All dates");
+
     setLaunchStatus(status);
     setDateRange(date);
     handleStatusChange(null, status);
@@ -221,17 +259,20 @@ export default function Launches() {
 
   useEffect(() => {
     filterLaunches();
+    setSelectedRow(null);
   }, [launches.launches, dateRange]);
 
   useEffect(() => {
-    if (launchStatus && dateRange.startDate) {
+    if (launchStatus && dateRange) {
       history.push({
         pathname: "/spacex",
-        search: `start=${dateRange.startDate
-          .toString()
-          .replace("+", "%2B")}&end=${dateRange.endDate
-          .toString()
-          .replace("+", "%2B")}&type=${launchStatus.value}`,
+        search: dateRange.startDate
+          ? `start=${dateRange.startDate
+              .toString()
+              .replace("+", "%2B")}&end=${dateRange.endDate
+              .toString()
+              .replace("+", "%2B")}&type=${launchStatus.value}`
+          : `start=&end=&type=${launchStatus.value}`,
       });
     }
     setPage(1);
@@ -249,7 +290,9 @@ export default function Launches() {
         item
         container
         justify="space-between"
-        style={{ width: "80%" }}
+        style={{
+          width: "952px",
+        }}
         alignItems="center"
       >
         <Grid item>
@@ -263,8 +306,9 @@ export default function Launches() {
             {dateRange.label}
           </Button>
         </Grid>
-        <Grid item style={{ width: "15%" }}>
+        <Grid item style={{ width: "25%" }}>
           <Autocomplete
+          className="status"
             disableClearable
             onChange={handleStatusChange}
             {...statusProps}
@@ -287,9 +331,9 @@ export default function Launches() {
           />
         </Grid>
       </Grid>
-      <Grid item style={{ width: "80%" }}>
+      <Grid item className={classes.container}>
         <Paper>
-          <TableContainer className={classes.container}>
+          <TableContainer>
             <Table
               stickyHeader
               aria-label="sticky table"
@@ -315,13 +359,23 @@ export default function Launches() {
                       (page - 1) * rowsPerPage,
                       (page - 1) * rowsPerPage + rowsPerPage
                     )
-                    .map((row) => {
+                    .map((row, index) => {
                       return (
                         <TableRow
+                          className={classes.tableRow}
                           hover
+                          selected={
+                            selectedRow &&
+                            row.number == selectedRow.row.flight_number
+                          }
                           role="checkbox"
                           tabIndex={-1}
-                          key={row.code}
+                          key={index}
+                          id={index}
+                          hover
+                          onClick={() =>
+                            handleDetailsDialog(row.number, row.launchStatus)
+                          }
                         >
                           {headings.map((column) => {
                             const value = row[column.id];
@@ -354,11 +408,19 @@ export default function Launches() {
             count={Math.ceil(launchRows.length / rowsPerPage)}
           />
           <DateRangeModal
+            dateRange={dateRange}
             setDateRange={setDateRange}
             openDateRange={openDateRange}
             handleCloseDateRange={handleCloseDateRange}
             toggle={toggle}
           />
+          {selectedRow && (
+            <SingleLaunchDetails
+              selectedRow={selectedRow.row}
+              status={selectedRow.status}
+              handleClose={closeDetailsDialog}
+            />
+          )}
         </Paper>
       </Grid>
     </Grid>
