@@ -38,7 +38,8 @@ const useStyles = makeStyles((theme) => ({
     // margin: "2vh 10vw",
   },
   container: {
-    minHeight: "80vh",
+    minHeight: "676px",
+    width: "952px",
   },
   pagination: {
     float: "right",
@@ -53,6 +54,7 @@ const useStyles = makeStyles((theme) => ({
         borderBottom: "none",
       },
     },
+    fontSize:'16px'
   },
   tableRow: {
     "&.Mui-selected": {
@@ -288,7 +290,9 @@ export default function Launches() {
         item
         container
         justify="space-between"
-        style={{ width: "80%" }}
+        style={{
+          width: "952px",
+        }}
         alignItems="center"
       >
         <Grid item>
@@ -302,8 +306,9 @@ export default function Launches() {
             {dateRange.label}
           </Button>
         </Grid>
-        <Grid item style={{ width: "15%" }}>
+        <Grid item style={{ width: "25%" }}>
           <Autocomplete
+          className="status"
             disableClearable
             onChange={handleStatusChange}
             {...statusProps}
@@ -326,9 +331,9 @@ export default function Launches() {
           />
         </Grid>
       </Grid>
-      <Grid item style={{ width: "80%" }}>
+      <Grid item className={classes.container}>
         <Paper>
-          <TableContainer className={classes.container}>
+          <TableContainer>
             <Table
               stickyHeader
               aria-label="sticky table"

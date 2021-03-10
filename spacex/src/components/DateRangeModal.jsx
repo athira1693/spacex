@@ -57,10 +57,11 @@ export const getQueriedRange = (start, end) => {
     start && end
       ? definedRanges.find((range) => {
           if (range.startDate) {
+            return(
             moment(range.startDate.toDateString()).isSame(
               start.toDateString()
             ) &&
-              moment(range.endDate.toDateString()).isSame(end.toDateString());
+              moment(range.endDate.toDateString()).isSame(end.toDateString()))
           }
         })
       : { label: `All dates`, startDate: null, endDate: null };
